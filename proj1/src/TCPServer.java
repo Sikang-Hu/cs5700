@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by Sikang on 2019-09-23. This is a server that can be used to process the message sent
@@ -35,7 +36,7 @@ public class TCPServer {
     }
   }
 
-  public static void main(String... args) throws IOException {
+  public static void main(String... args) {
     // Register service on port 32000
     if (args.length < 1) {
       System.out.println("Please specified the port by <port>");
@@ -51,16 +52,23 @@ public class TCPServer {
       System.exit(1);
     }
 
-    // Initialize a new server socket
-    ServerSocket s = new ServerSocket(port);
-    System.out.println("Server is running...");
-    Socket s1 = s.accept();
-    TCPServer server = new TCPServer();
-    server.setSocket(s1);
-    server.setService(new ToggleService());
-    server.execute();
-    s1.close();
-    System.out.println("Server closed...");
+    try (ServerSocket s = new ServerSocket(port);
+         Socket s1 = s.accept()) {
+      // Initialize a new server socket
+      TCPServer server = new TCPServer();
+      server.setSocket(s1);
+      server.setService(new ToggleService());
+      server.execute();
+      s1.close();
+      s.close();
+      System.out.println("Server closed...");
+    }  catch (SocketException e) {
+      System.out.printf("Socket error: %s\n", e.getMessage());
+    } catch (IOException e) {
+      System.out.printf("Encountered I/O problem: %s\n", e.getMessage());
+    }
+
+
   }
 
 

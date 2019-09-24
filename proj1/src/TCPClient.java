@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 /**
@@ -29,6 +30,8 @@ public class TCPClient {
     // Initialize a socket
     System.out.println("Connecting...");
 
+
+
     try (Socket s1 = new Socket(host, port)) {
       System.out.println("Succeeded!");
 
@@ -38,18 +41,16 @@ public class TCPClient {
 
       // Send the input text through socket
       OutputStream s1Out = s1.getOutputStream();
-      DataOutputStream dos = new DataOutputStream(s1Out);
-      dos.writeUTF(s.nextLine());
-
-      // Get the response from the socket
       InputStream s1In = s1.getInputStream();
-      DataInputStream dis = new DataInputStream(s1In);
-      System.out.println("Response from server:");
-
-      // print out the response
-      System.out.println(dis.readUTF());
-      dos.close();
-      dis.close();
+      try (DataOutputStream dos = new DataOutputStream(s1Out);
+           DataInputStream dis = new DataInputStream(s1In)) {
+        dos.writeUTF(s.nextLine());
+        System.out.println("Response from server:");
+        // print out the response
+        System.out.println(dis.readUTF());
+      }
+    }catch (SocketException e) {
+      System.out.printf("Socket error: %s\n", e.getMessage());
     } catch (IOException e) {
       System.out.printf("Failed to get the response from the server: %s\n", e.getMessage());
     }
